@@ -7,6 +7,7 @@ import os
 from enum import Enum
 import time
 import pandas
+import numpy
 
 class PTIData(object):
     '''PTI spectrometer data class.'''
@@ -73,6 +74,26 @@ class PTIData(object):
         self.SpecCorrected = None
         self.USpecCorrected = None
         return
+
+    def baseline_subtracted(self, data_type, start_wavelength=500, end_wavelength=600):
+        if data_type.lower() not in ['raw', 'cor','corr', 'corrected']:
+            print "ERROR: Please select raw ('raw') or correct ('cor') data"
+            return
+
+        data_set = None
+        if data_type.lower() == 'raw':
+            data_set = self.raw_data
+        else:  
+           data_set = self.cor_data
+        
+        # Isolate the spectrum between the 500 nm and 600 nm wavelengths
+        select_by_wavelength = data_set.where((data_set['wavelength'] > start_wavelength) &
+                                              (data_set['wavelength'] < end_wavelength))
+
+        # Average the target data to estimate the baseline and apply the shift
+        baseline = numpy.mean(select_by_wavelength['intensity'])
+        data_set['intensity'] -= baseline*numpy.ones(self.num_samples)
+        return data_set
 
     def RegisterCorrSpec(self, CorrSpec, UCorrSpec):
         '''
