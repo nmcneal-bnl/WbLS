@@ -24,10 +24,12 @@ class PTIData(object):
 
         self.acq_start = None
         self.num_samples = -1
+        self.step_size = -1
         self.PMT_mode = str()
         self.ex_range = list([-2,-1])
         self.em_range = list([-2,-1])
 
+        self.wavelengths = None
         self.raw_data = None
         self.cor_data = None
 
@@ -75,7 +77,7 @@ class PTIData(object):
         self.USpecCorrected = None
         return
 
-    def baseline_subtracted(self, data_type, start_wavelength=500, end_wavelength=600):
+    def get_baseline_subtracted(self, data_type, start_wavelength=500, end_wavelength=600):
         if data_type.lower() not in ['raw', 'cor','corr', 'corrected']:
             print "ERROR: Please select raw ('raw') or correct ('cor') data"
             return
@@ -87,12 +89,12 @@ class PTIData(object):
            data_set = self.cor_data
         
         # Isolate the spectrum between the 500 nm and 600 nm wavelengths
-        select_by_wavelength = data_set.where((data_set['wavelength'] > start_wavelength) &
-                                              (data_set['wavelength'] < end_wavelength))
+        select_by_wavelength = numpy.where((self.wavelengths > start_wavelength) &
+                                        (self.wavelengths < end_wavelength))
 
         # Average the target data to estimate the baseline and apply the shift
-        baseline = numpy.mean(select_by_wavelength['intensity'])
-        data_set['intensity'] -= baseline*numpy.ones(self.num_samples)
+        baseline = numpy.mean(data_set[select_by_wavelength])
+        data_set -= baseline*numpy.ones(self.num_samples)
         return data_set
 
     def RegisterCorrSpec(self, CorrSpec, UCorrSpec):
@@ -239,20 +241,21 @@ class PTIData(object):
     def _ReadSessionData(self):
         NoCorr = False
         
-        self.raw_data = pandas.read_table(self.file_path, 
-                                          delim_whitespace = True,
-                                          skiprows = range(7),
-                                          nrows = self.num_samples,
-                                          usecols = [0,1])
-        self.raw_data.columns = ["wavelength", "intensity"]
+        self.wavelengths = numpy.genfromtxt(self.file_path,
+                                      skip_header=8,
+                                      max_rows  = self.num_samples,
+                                      usecols = [0])
 
-        self.cor_data = pandas.read_table(self.file_path, 
-                                          delim_whitespace = True,
-                                          skiprows = range(7),
-                                          nrows = self.num_samples,
-                                          usecols = [2,3])
-        self.cor_data.columns = ["wavelength", "intensity"]
+        self.raw_data = numpy.genfromtxt(self.file_path,
+                                      skip_header=8,
+                                      max_rows  = self.num_samples,
+                                      usecols = [1])
 
+        self.cor_data = numpy.genfromtxt(self.file_path,
+                                      skip_header=8,
+                                      max_rows  = self.num_samples,
+                                      usecols = [3])
+        self.step_size = self.wavelengths[1] - self.wavelengths[0]
         '''
         with open(self.file_path, 'r') as thefile:
             for i, line in enumerate(thefile):
