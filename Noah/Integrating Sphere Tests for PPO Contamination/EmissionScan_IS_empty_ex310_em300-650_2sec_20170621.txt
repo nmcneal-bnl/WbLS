@@ -1,5 +1,3 @@
-<Session>
-Acquisition 1 2017-06-22 14:30:03
 <Group>
 Detector1
 2

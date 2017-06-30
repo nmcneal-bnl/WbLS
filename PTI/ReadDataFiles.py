@@ -77,67 +77,6 @@ class PTIData(object):
         self.USpecCorrected = None
         return
 
-    def get_baseline(self, raw_or_cor, const_or_linear, list_of_ranges=[]):
-        if raw_or_cor.lower() not in ['raw', 'cor','corr', 'corrected']:
-            print "ERROR: Please select raw ('raw') or correct ('cor') data"
-            return
-        
-        # Define which data set to use
-        data_set = None
-        if raw_or_cor.lower() == 'raw':
-            data_set = self.raw_data
-        else:  
-           data_set = self.cor_data
-        
-        # Intialize the baseline to zero
-        intercept = 0
-        slope = 0
-
-        if const_or_linear == 'const':
-            # Isolate the spectrum within the ranges given
-            for range in list_of_ranges:
-                start = range[0]
-                end = range[1]
-                select_by_wavelength = numpy.where((self.wavelengths > start) &
-                                                   (self.wavelengths < end))
-
-                # Average the target data to estimate the baseline
-                intercept += numpy.mean(data_set[select_by_wavelength]) / 2.0
-            slope = 0
-    
-        elif const_or_linear == 'linear':
-            x = numpy.array([])
-            y = numpy.array([])
-            for range in list_of_ranges:
-                start = range[0]
-                end = range[1]
-                x = numpy.append(x, numpy.arange(start, end+self.step_size, self.step_size))
-                
-                select_by_wavelength = numpy.where((self.wavelengths >= start) &
-                                                   (self.wavelengths <= end))
-
-                y = numpy.append(y, data_set[select_by_wavelength])
-                fit =  numpy.polyfit(x, y, deg=1)
-
-                slope = fit[0]
-                intercept = fit[1]
-
-        # For y=mx+b, returns (m,b)
-        return slope*self.wavelengths+intercept*numpy.ones(self.wavelengths.size)
-
-    def get_baseline_subtracted(self, raw_or_cor, const_or_linear, list_of_ranges=[]):
-        baseline = self.get_baseline(raw_or_cor, const_or_linear, list_of_ranges)
-        
-        if raw_or_cor.lower() not in ['raw', 'cor','corr', 'corrected']:
-            print "ERROR: Please select raw ('raw') or correct ('cor') data"
-            return
-
-        elif raw_or_cor.lower() == 'raw':
-            return self.raw_data - baseline
-        else:  
-            return self.cor_data - baseline
-        
-
     def RegisterCorrSpec(self, CorrSpec, UCorrSpec):
         '''
         Define the SpecCorrected and USpecCorrected members.
