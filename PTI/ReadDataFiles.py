@@ -32,6 +32,7 @@ class PTIData(object):
         self.wavelengths = None
         self.raw_data = None
         self.cor_data = None
+        self.excorr   = None
 
 
         ## Reading in the file ##
@@ -236,6 +237,21 @@ class PTIData(object):
                                       max_rows  = self.num_samples,
                                       usecols = [3])
         self.step_size = self.wavelengths[1] - self.wavelengths[0]
+
+        excorr_header_line_num = -1
+        f = open(self.file_path, 'r')
+        for tup in enumerate(f):   
+            if 'excorr' in tup[1].lower():
+                excorr_header_line_num = tup[0] + 1
+                break
+        
+        self.excorr =  numpy.genfromtxt(self.file_path,
+                                      skip_header=excorr_header_line_num+1,
+                                      max_rows  = self.num_samples,
+                                      usecols = [1])
+        
+
+        f.close()
         '''
         with open(self.file_path, 'r') as thefile:
             for i, line in enumerate(thefile):
