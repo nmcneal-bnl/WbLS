@@ -1,6 +1,18 @@
 import numpy
 from scipy.integrate import simps
 
+def integrate_between(PTIData1, PTIData2, int_range):
+    difference = PTIData1.cor_data - PTIData2.cor_data
+
+    # Integration
+    limits = numpy.where((PTIData1.wavelengths >= int_range[0]) & 
+                         (PTIData1.wavelengths <= int_range[1]))
+
+    def_int = simps(y = difference[limits],
+                    dx = PTIData1.step_size)
+                                       
+    return def_int
+
 def calc_QY_PTI(pti_blank_data, pti_fluor_data, 
                 ex_integration_range, em_integration_range):
     

@@ -3,6 +3,7 @@
 These classes handle data from the PTI spectrometer.
 TEXT data are assumed (not the .gx* nonsense).
 '''
+import copy
 import os
 from enum import Enum
 import time
@@ -32,7 +33,7 @@ class PTIData(object):
         self.wavelengths = None
         self.raw_data = None
         self.cor_data = None
-        self.excorr   = None
+        self.diode   = None
 
 
         ## Reading in the file ##
@@ -42,7 +43,7 @@ class PTIData(object):
         # Checking for file's existence and opening if possible
         if not os.path.exists(fname):
             print("ERROR!! File does not exist.")
-            self.SuccessfullyRead = False            
+            self.read_success = False            
             return
         
 
@@ -57,10 +58,10 @@ class PTIData(object):
             else:
                 print("ERROR!! Unknown file format.")
                 self.file_type = self.file_types.Unknown
-                self.SuccessfullyRead = False
+                self.read_success = False
                 return
 
-        self.SuccessfullyRead = self.ReadHeaderInfo()
+        self.read_success = self.ReadHeaderInfo()
         self.WL = [0]*self.num_samples
         if self.file_type == self.file_types.Session:
             self.Spec = [0]*self.num_samples
@@ -245,46 +246,24 @@ class PTIData(object):
                 excorr_header_line_num = tup[0] + 1
                 break
         
-        self.excorr =  numpy.genfromtxt(self.file_path,
+        self.diode =  numpy.genfromtxt(self.file_path,
                                       skip_header=excorr_header_line_num+1,
                                       max_rows  = self.num_samples,
                                       usecols = [1])
         
 
         f.close()
-        '''
-        with open(self.file_path, 'r') as thefile:
-            for i, line in enumerate(thefile):
-                if i > 7 and i < (8 + self.num_samples):
-                    wrds = line.split()
-                    self.WL[i-8] = float(wrds[0])
-                    self.SpecRaw[i-8] = float(wrds[1])
-                    self.USpecRaw[i-8] = abs(float(wrds[1]))**(0.5)
-                    self.FileSpecCorrected[i-8] = float(wrds[-1])
-                    self.UFileSpecCorrected[i-8] = abs(float(wrds[-1]))**(0.5)
-                    try:
-                        self.Spec[i-8] = float(wrds[3])
-                    except IndexError:
-                        NoCorr = True
-                elif i > (8 + self.num_samples + 7) and \
-                   i < (8 + self.num_samples + 7 + self.num_samples):
-                    wrds = line.split()
-                    self.ExCorr[i-(8+self.num_samples+7)] += float(wrds[1])
-        if NoCorr:
-            print("Warning: No Corrected Spectrum was found in this session file!")
-        return
-        '''
-    
     
     def _ReadTraceData(self):
-        
+        self.wavelengths = numpy.genfromtxt(self.file_path,
+                                      skip_header=4,
+                                      max_rows  = self.num_samples,
+                                      usecols = [0])        
             
-        read_data = pandas.read_table(self.file_path, 
-                                          delim_whitespace = True,
-                                          skiprows = range(3),
-                                          nrows = self.num_samples,
-                                          usecols = [0,1])
-        read_data.columns = ["wavelength", "intensity"]
+        read_data = numpy.genfromtxt(self.file_path,
+                                      skip_header=4,
+                                      max_rows  = self.num_samples,
+                                      usecols = [1]) 
         with open(self.file_path,'r') as thefile:
             for i, line in enumerate(thefile):
                 if i == 2:
@@ -304,3 +283,52 @@ class PTIData(object):
                     self.Trace[i-6] = float(wrds[1])
                     self.UTrace[i-6] = abs(float(wrds[1]))**(0.5)
         return
+
+    def plot(self, fig_size = (10,10)):
+        from matplotlib import pyplot as plt
+
+        fig = plt.figure(figsize = fig_size)
+        ax1 = plt.subplot2grid((2,2), (0,0))
+        ax2 = plt.subplot2grid((2,2), (0,1))
+        ax3 = plt.subplot2grid((2,2), (1,0), colspan = 2)
+
+        ax1.plot(self.wavelengths, self.raw_data)
+        ax2.plot(self.wavelengths, self.diode)
+        ax3.plot(self.wavelengths, self.cor_data)
+
+        date = "%s-%s-%s     %s:%s" %(self.acq_start.tm_year,
+                                self.acq_start.tm_mon,
+                                self.acq_start.tm_mday,
+                                self.acq_start.tm_hour,
+                                self.acq_start.tm_min)
+
+        fig.suptitle(self.file_path + '\n' + date)
+        ax1.set_title("Raw Data", fontsize = 15)
+        ax2.set_title("Diode Signal", fontsize = 15)
+        ax3.set_title("Fully Corrected Data", fontsize = 15)
+
+        for ax in [ax1, ax2, ax3]:
+            ax.grid()
+            ax.set_xlim([self.wavelengths[0], self.wavelengths[-1]])
+        return fig
+
+    def get_date(self, space="     "):
+        date = "%d-%d-%d%s%d:%02d" %(self.acq_start.tm_year,
+                        self.acq_start.tm_mon,
+                        self.acq_start.tm_mday,
+                        space,
+                        self.acq_start.tm_hour,
+                        self.acq_start.tm_min)
+        return date
+       
+
+    def __add__(self, other):
+        new = copy.deepcopy(self)
+        new.wavelengths= (new.wavelengths + other.wavelengths) / 2.0
+        new.raw_data = (new.raw_data + other.raw_data) / 2.0
+        new.cor_data = (new.cor_data + other.cor_data) / 2.0
+        new.diode = (new.diode + other.diode) / 2.0
+        new.file_path = "Merged"
+        return new
+            
+        
