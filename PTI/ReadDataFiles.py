@@ -34,6 +34,11 @@ class PTIData(object):
         self.raw_data = None
         self.cor_data = None
         self.diode   = None
+        
+        self.baseline_incpt = None
+        self.baseline_slope = None
+        self.baseline_incpt_se = None
+        self.baseline_slope_se = None
 
 
         ## Reading in the file ##
@@ -293,6 +298,8 @@ class PTIData(object):
         ax3 = plt.subplot2grid((2,2), (1,0), colspan = 2)
 
         ax1.plot(self.wavelengths, self.raw_data)
+        if self.baseline is not None:
+            ax1.plot(self.wavelengths, self.baseline, 'r')
         ax2.plot(self.wavelengths, self.diode)
         ax3.plot(self.wavelengths, self.cor_data)
 
