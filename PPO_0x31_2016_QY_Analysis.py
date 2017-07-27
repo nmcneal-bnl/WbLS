@@ -12,16 +12,18 @@ import PTI.QuantumYield as PTIQY
 
 # <editor-fold desc="Importing">
 # The file paths for the blank LAB measurements
-LAB_paths = ["Henry/Sphere/bisMSB_LAB/EmissionScan_LAB_ex350_2sec_160823.txt",
-             "Henry/Sphere/bisMSB_LAB/EmissionScan_LAB_ex360_2sec_160823.txt",
-             "Henry/Sphere/bisMSB_LAB/EmissionScan_LAB_ex370_2sec_160823.txt",
-             "Henry/Sphere/bisMSB_LAB/EmissionScan_LAB_ex380_2sec_160823.txt"]
+# The file paths for the blank ethanol measurements
+EtOH_paths = ["Henry/Sphere/PPO_ETOH/EmissionScan_ETOH_ex310_2sec_160830.txt",
+              "Henry/Sphere/PPO_ETOH/EmissionScan_ETOH_ex320_2sec_160830.txt",
+              "Henry/Sphere/PPO_ETOH/EmissionScan_ETOH_ex330_2sec_160830.txt",
+              "Henry/Sphere/PPO_ETOH/EmissionScan_ETOH_ex340_2sec_160830.txt"]
 
-# The file paths for the 4.47 mg/L bisMSB in LAB measurements
-bisMSB_4x47_paths = ["Henry/Sphere/bisMSB_LAB/EmissionScan_bisMSBinLAB_4.47mgL_ex350_2sec_160824.txt",
-                     "Henry/Sphere/bisMSB_LAB/EmissionScan_bisMSBinLAB_4.47mgL_ex360_2sec_160824.txt",
-                     "Henry/Sphere/bisMSB_LAB/EmissionScan_bisMSBinLAB_4.47mgL_ex370_2sec_160824.txt",
-                     "Henry/Sphere/bisMSB_LAB/EmissionScan_bisMSBinLAB_4.47mgL_ex380_2sec_160824.txt"]
+# The file paths for the 0.31 mg/L PPO in ethanol measurements
+PPO_0x31_paths = ["Henry/Sphere/PPO_ETOH/EmissionScan_0x31gperL_PPOinETOH_ex310_2sec_160831.txt",
+                  "Henry/Sphere/PPO_ETOH/EmissionScan_0x31gperL_PPOinETOH_ex320_2sec_160831.txt",
+                  "Henry/Sphere/PPO_ETOH/EmissionScan_0x31gperL_PPOinETOH_ex330_2sec_160831.txt",
+                  "Henry/Sphere/PPO_ETOH/EmissionScan_0x31gperL_PPOinETOH_ex340_2sec_160831.txt"]
+
 
 def convert_paths_to_PTIData_objs(list_of_paths):
     list_of_PTIData = list()
@@ -29,41 +31,44 @@ def convert_paths_to_PTIData_objs(list_of_paths):
         list_of_PTIData.append(PTIData(path))
     return list_of_PTIData
 
-LAB = convert_paths_to_PTIData_objs(LAB_paths)
-bisMSB_4x47 = convert_paths_to_PTIData_objs(bisMSB_4x47_paths)
+ETOH = convert_paths_to_PTIData_objs(EtOH_paths)
+PPO_0x31 = convert_paths_to_PTIData_objs(PPO_0x31_paths)
 # </editor-fold>
 
 
 def QY_analysis(ex_LUT_split = 'none', em_LUT_split = 'none',
+                LUT_shift='none', ex_LUT_shift_percent = 1,
                 ex_LUT_interpolation = 'cubic', em_LUT_interpolation = 'cubic',
                 const_diode = False,
                 use_baseline_se = ('none', 'none')):
 
-    corrected_LAB = [PTICorr.correct_raw_to_cor(data, baseline_fit_ranges=[[300, 325], [550, 650]],
-                                                ex_LUT_split=ex_LUT_split, em_LUT_split=em_LUT_split,
-                                                ex_LUT_interpolation = ex_LUT_interpolation,
-                                                em_LUT_interpolation=em_LUT_interpolation,
-                                                const_diode = const_diode,
-                                                use_baseline_se=use_baseline_se)
-                     for data in LAB]
-    corrected_bisMSB_4x47 = [PTICorr.correct_raw_to_cor(data, baseline_fit_ranges=[[300, 325], [550, 650]],
-                                                        ex_LUT_split=ex_LUT_split, em_LUT_split=em_LUT_split,
-                                                        ex_LUT_interpolation = ex_LUT_interpolation,
-                                                        em_LUT_interpolation= em_LUT_interpolation,
-                                                        const_diode = const_diode,
-                                                        use_baseline_se=use_baseline_se)
-                             for data in bisMSB_4x47]
+    ETOH_ex_wavelengths = [310, 320, 330, 340]
+    corrected_ETOH = [PTICorr.correct_raw_to_cor(ETOH[i],baseline_fit_ranges = [[300, ETOH_ex_wavelengths[i] - 5], [500, 650]],
+                                                 ex_LUT_split=ex_LUT_split, em_LUT_split=em_LUT_split,
+                                                 LUT_shift=LUT_shift, ex_LUT_shift_percent=ex_LUT_shift_percent,
+                                                 ex_LUT_interpolation = ex_LUT_interpolation,
+                                                 em_LUT_interpolation=em_LUT_interpolation,
+                                                 const_diode = const_diode,
+                                                 use_baseline_se=use_baseline_se)
+                      for i in range(len(ETOH))]
 
+    corrected_PPO_0x31 = [PTICorr.correct_raw_to_cor(PPO_0x31[i],baseline_fit_ranges = [[300, ETOH_ex_wavelengths[i] - 5], [500, 650]],
+                                                     ex_LUT_split=ex_LUT_split, em_LUT_split=em_LUT_split,
+                                                     ex_LUT_interpolation = ex_LUT_interpolation,
+                                                     em_LUT_interpolation=em_LUT_interpolation,
+                                                     const_diode = const_diode,
+                                                     use_baseline_se=use_baseline_se)
+                      for i in range(len(PPO_0x31))]
     QYs = list()
     correction_ratios = list()
-    for blank, fluor in zip(corrected_LAB, corrected_bisMSB_4x47):
+    for blank, fluor in zip(corrected_ETOH, corrected_PPO_0x31):
         # Define the emission region used for the quantum yield calculation
         ex_wavelength = blank.ex_range[0]
-        ex_delta = 5
+        ex_delta = 10
         ex_int_range = [ex_wavelength - ex_delta, ex_wavelength + ex_delta]
 
-        em_int_range = [365, 650]
-        correction_int_range = [400, 650]
+        em_int_range = [335, 650]
+        correction_int_range = [360, 650]
 
         # QY
         num_absorbed = PTIQY.integrate_between(blank, fluor, ex_int_range)
@@ -72,7 +77,7 @@ def QY_analysis(ex_LUT_split = 'none', em_LUT_split = 'none',
 
         QYs.append(num_emitted / num_absorbed)
         correction_ratios.append(correction_area / num_emitted)
-
+    print correction_ratios
     true_correction_ratio = np.mean(correction_ratios[:2])
     corrected_QYs = [QYs[i] * correction_ratios[i] / true_correction_ratio
                                  for i in range(len(QYs))]
@@ -139,7 +144,7 @@ def run_LUT_splitting_options():
 
 
 def run_all_options():
-    f = open("QY Uncertainty Data/bisMSB_4x47/all_options.txt", 'w+')
+    f = open("QY Uncertainty Data/PPO_0x31/all_options.txt", 'w+')
     f.write("Intercept SE, Slope SE, Ex LUT Interpolation, Em LUT Interpolation," +
             "Ex LUT Split, Em LUT Split, Constant Diode, 350 nm, 360 nm, 370 nm, 380 nm\n")
     for use_baseline_se in baseline_se_options:
@@ -161,7 +166,7 @@ def run_all_options():
                     f.write('\n')
     f.close()
 
-# print QY_analysis()
+print QY_analysis()
 
 # run_baseline_options()
 # run_const_diode_options()
