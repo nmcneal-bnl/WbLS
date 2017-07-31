@@ -34,13 +34,21 @@ bisMSB_4x47 = convert_paths_to_PTIData_objs(bisMSB_4x47_paths)
 # </editor-fold>
 
 
-def QY_analysis(ex_LUT_split = 'none', em_LUT_split = 'none',
+DEFAULT_EX_MONOCHROMATOR_SHIFT = 2.5
+DEFAULT_EM_MONOCHROMATOR_SHIFT = 2.0
+
+def QY_analysis(correction_region_start = None,
+                ex_LUT_split = 'none', em_LUT_split = 'none',
+                shift_LUT=False,
+                ex_shift=DEFAULT_EX_MONOCHROMATOR_SHIFT, em_shift=DEFAULT_EM_MONOCHROMATOR_SHIFT,
                 ex_LUT_interpolation = 'cubic', em_LUT_interpolation = 'cubic',
                 const_diode = False,
                 use_baseline_se = ('none', 'none')):
 
     corrected_LAB = [PTICorr.correct_raw_to_cor(data, baseline_fit_ranges=[[300, 325], [550, 650]],
                                                 ex_LUT_split=ex_LUT_split, em_LUT_split=em_LUT_split,
+                                                shift_LUT=shift_LUT,
+                                                ex_shift=ex_shift, em_shift=em_shift,
                                                 ex_LUT_interpolation = ex_LUT_interpolation,
                                                 em_LUT_interpolation=em_LUT_interpolation,
                                                 const_diode = const_diode,
@@ -48,6 +56,8 @@ def QY_analysis(ex_LUT_split = 'none', em_LUT_split = 'none',
                      for data in LAB]
     corrected_bisMSB_4x47 = [PTICorr.correct_raw_to_cor(data, baseline_fit_ranges=[[300, 325], [550, 650]],
                                                         ex_LUT_split=ex_LUT_split, em_LUT_split=em_LUT_split,
+                                                        shift_LUT=shift_LUT,
+                                                        ex_shift=ex_shift, em_shift=em_shift,
                                                         ex_LUT_interpolation = ex_LUT_interpolation,
                                                         em_LUT_interpolation= em_LUT_interpolation,
                                                         const_diode = const_diode,
@@ -63,7 +73,7 @@ def QY_analysis(ex_LUT_split = 'none', em_LUT_split = 'none',
         ex_int_range = [ex_wavelength - ex_delta, ex_wavelength + ex_delta]
 
         em_int_range = [365, 650]
-        correction_int_range = [400, 650]
+        correction_int_range = [correction_region_start, 650]
 
         # QY
         num_absorbed = PTIQY.integrate_between(blank, fluor, ex_int_range)
@@ -73,7 +83,11 @@ def QY_analysis(ex_LUT_split = 'none', em_LUT_split = 'none',
         QYs.append(num_emitted / num_absorbed)
         correction_ratios.append(correction_area / num_emitted)
 
-    true_correction_ratio = np.mean(correction_ratios[:2])
+    if abs(correction_ratios[1] - correction_ratios[0]) < 0.05\
+            :
+        true_correction_ratio = np.mean(correction_ratios[:2])
+    else:
+        true_correction_ratio = correction_ratios[:1]
     corrected_QYs = [QYs[i] * correction_ratios[i] / true_correction_ratio
                                  for i in range(len(QYs))]
 
@@ -82,10 +96,12 @@ def QY_analysis(ex_LUT_split = 'none', em_LUT_split = 'none',
 
 QYs = list()
 
+correction_region_initial_wavelengths = range(390, 450+5, 5)
 LUT_interpolation_options = [(a,b) for a in ['linear', 'slinear', 'quadratic', 'cubic'] for b in ['linear', 'slinear', 'quadratic', 'cubic']]
 LUT_splitting_options = [(a,b) for a in ['none', 'even', 'odd'] for b in ['none', 'even', 'odd']]
 const_diode_options = [False, True]
 baseline_se_options = [(a,b) for a in ['none','plus','minus'] for b in ['none','plus','minus']]
+LUT_shifting_options = [False, True]
 
 
 def run_baseline_options():
@@ -99,6 +115,7 @@ def run_baseline_options():
 
 
     f.close()
+    print "Finished running baseline options"
 
 
 def run_const_diode_options():
@@ -110,6 +127,7 @@ def run_const_diode_options():
             f.write(',' + str(item))
         f.write('\n')
     f.close()
+    print "Finished running the diode options"
 
 
 def run_LUT_interpolation_options():
@@ -123,6 +141,7 @@ def run_LUT_interpolation_options():
             f.write(',' + str(item))
         f.write('\n')
     f.close()
+    print "Finished running look-up table interpolation options"
 
 
 def run_LUT_splitting_options():
@@ -132,39 +151,61 @@ def run_LUT_splitting_options():
         f.write(str(option[0])+',')
         f.write(str(option[1]))
         for item in QY_analysis(ex_LUT_split=option[0],
-                                em_LUT_split=option[1]):
+                                 em_LUT_split=option[1]):
             f.write(',' + str(item))
         f.write('\n')
     f.close()
+    print "Finished running look-up table splitting options"
+
+
+def run_LUT_shifting_options():
+    f = open("QY Uncertainty Data/bisMSB_4x47/LUT_shifting.txt", 'w+')
+    f.write("Offsetting LUT?, 350 nm, 360 nm, 370 nm, 380 nm\n")
+    for option in LUT_shifting_options:
+        f.write(str(option))
+        for item in QY_analysis(shift_LUT=option):
+            f.write(',' + str(item))
+        f.write('\n')
+    f.close()
+    print "Finished running look-up table shifting options"
 
 
 def run_all_options():
     f = open("QY Uncertainty Data/bisMSB_4x47/all_options.txt", 'w+')
-    f.write("Intercept SE, Slope SE, Ex LUT Interpolation, Em LUT Interpolation," +
-            "Ex LUT Split, Em LUT Split, Constant Diode, 350 nm, 360 nm, 370 nm, 380 nm\n")
-    for use_baseline_se in baseline_se_options:
-        for ex_LUT_interpolation, em_LUT_interpolation in LUT_interpolation_options:
-            for ex_LUT_split, em_LUT_split in LUT_splitting_options:
-                for const_diode in const_diode_options:
-                    f.write(use_baseline_se[0] + ',' + use_baseline_se[0] + ',')
-                    f.write(ex_LUT_interpolation + ',' + em_LUT_interpolation + ',')
-                    f.write(ex_LUT_split + ',' + em_LUT_split + ',')
-                    f.write(str(const_diode))
+    f.write("Intercept SE,Slope SE,Constant Diode,Ex LUT Interpolation,Em LUT Interpolation," +
+            "Ex LUT Split,Em LUT Split,Shift LUT?,Correction Region Start,350 nm,360 nm,370 nm, 380 nm\n")
+    for shift_LUT in LUT_shifting_options:
+        for use_baseline_se in baseline_se_options:
+            for ex_LUT_interpolation, em_LUT_interpolation in LUT_interpolation_options:
+                for ex_LUT_split, em_LUT_split in LUT_splitting_options:
+                    for const_diode in const_diode_options:
+                        for start in correction_region_initial_wavelengths:
+                            f.write(use_baseline_se[0] + ',' + use_baseline_se[0] + ',')
+                            f.write(str(const_diode) + ',')
+                            f.write(ex_LUT_interpolation + ',' + em_LUT_interpolation + ',')
+                            f.write(ex_LUT_split + ',' + em_LUT_split + ',')
+                            f.write(str(shift_LUT) + ',')
+                            f.write(str(start))
 
-                    for item in QY_analysis(use_baseline_se=use_baseline_se,
-                                            ex_LUT_interpolation= ex_LUT_interpolation,
-                                            em_LUT_interpolation=em_LUT_interpolation,
-                                            ex_LUT_split=ex_LUT_split,
-                                            em_LUT_split=em_LUT_split,
-                                            const_diode=const_diode):
-                        f.write(',' + str(item))
-                    f.write('\n')
+                            for item in QY_analysis(correction_region_start=start,
+                                                    use_baseline_se=use_baseline_se,
+                                                    ex_LUT_interpolation= ex_LUT_interpolation,
+                                                    em_LUT_interpolation=em_LUT_interpolation,
+                                                    shift_LUT=shift_LUT,
+                                                    ex_LUT_split=ex_LUT_split,
+                                                    em_LUT_split=em_LUT_split,
+                                                    const_diode=const_diode):
+                                f.write(',' + str(item))
+                            f.write('\n')
     f.close()
+    print "Finished running all combinations of the options"
 
-# print QY_analysis()
+
+print QY_analysis()
 
 # run_baseline_options()
 # run_const_diode_options()
 # run_LUT_interpolation_options()
 # run_LUT_splitting_options()
-# run_all_options()
+# run_LUT_shifting_options()
+run_all_options()

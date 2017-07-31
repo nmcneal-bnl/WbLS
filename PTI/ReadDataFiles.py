@@ -40,6 +40,9 @@ class PTIData(object):
         self.baseline_incpt_se = None
         self.baseline_slope_se = None
 
+        self.ex_monochromator_offset = -1
+        self.em_monochromator_offset = -1
+
 
         ## Reading in the file ##
         # Take in the given parameter

@@ -5,54 +5,6 @@ import numpy
 import matplotlib.pyplot as plt
 
 
-def gaussian_func(x, a, b, c, d):
-    return a * numpy.exp((-(x - b) ** 2) / (2 * c)) + d
-
-
-def gaussian_fit(x_data, y_data, guess=(1, 1, 1, 0)):
-    params, cov_matrix = curve_fit(gaussian_func, x_data, y_data, p0=guess)
-    return params, cov_matrix
-
-
-def calc_peak_shift_from_secondary(PTIData, theoretical_peak = 0, dx_around_peak = 10):
-    global_peak = numpy.max(PTIData.raw_data)
-    peak_wavelength = PTIData.wavelengths[numpy.where(PTIData.raw_data == global_peak)][0]
-    if 2 * peak_wavelength < PTIData.em_range[1]:
-        peak_range = numpy.where((PTIData.wavelengths >= peak_wavelength - dx_around_peak) &
-                                 (PTIData.wavelengths <= peak_wavelength + dx_around_peak))
-        peak_range2 = numpy.where((PTIData.wavelengths >= 2*peak_wavelength - dx_around_peak) &
-                                  (PTIData.wavelengths <= 2*peak_wavelength + dx_around_peak))
-
-        x_data = PTIData.wavelengths[peak_range]
-        y_data = PTIData.raw_data[peak_range]
-        x_data2 = PTIData.wavelengths[peak_range2]
-        y_data2 = PTIData.raw_data[peak_range2]
-
-        secondary_peak = numpy.max(y_data2)
-
-        guess = (global_peak, peak_wavelength, 2*dx_around_peak/2.35482, 0)
-        guess2 = (secondary_peak, 2*peak_wavelength, 2*dx_around_peak/2.35482, 0)
-
-        params, cov_matrix = gaussian_fit(x_data, y_data, guess)
-        params2, cov_matrix2 = gaussian_fit(x_data2, y_data2, guess2)
-
-        # x = numpy.arange(peak_wavelength - dx_around_peak, peak_wavelength + dx_around_peak, 0.1)
-        # x2 = numpy.arange(2*peak_wavelength - dx_around_peak, 2*peak_wavelength + dx_around_peak, 0.1)
-        # y = gaussian_func(x, params[0], params[1], params[2], params[3])
-        # y2 = gaussian_func(x2, params2[0], params2[1], params2[2], params2[3])
-        #
-        # plt.plot(PTIData.wavelengths, PTIData.raw_data)
-        # plt.plot(x, y)
-        # plt.plot(x2, y2)
-        # plt.show()
-        print "Theoretical excitation wavelength: %0.2f" %theoretical_peak
-        print "Spectrum physically peaks at: %0.2f" %params[1]
-        print "Calculated true excitation wavelength: %0.2f\n" %(params2[1] - params[1])
-        return theoretical_peak - (params2[1] - params[1])
-    else:
-        # print "Error: Theoretical secondary peak wavelength is not within the excitation range."
-        return None
-
 def linear_func(x, b, m):
     return m * x + b
 
@@ -107,6 +59,79 @@ def linear_baseline(PTIData, list_of_ranges,
     return baseline, fit_params, errors
 
 
+def gaussian_func(x, a, b, c, d):
+    return a * numpy.exp((-(x - b) ** 2) / (2 * c)) + d
+
+
+def gaussian_fit(x_data, y_data, guess=(1, 1, 1, 0)):
+    params, cov_matrix = curve_fit(gaussian_func, x_data, y_data, p0=guess)
+    return params, cov_matrix
+
+
+def get_true_excitation_wavelength_from_secondary_peak(PTIData, dx_around_peak = 5):
+    global_peak = numpy.max(PTIData.raw_data)
+    peak_wavelength = PTIData.wavelengths[numpy.where(PTIData.raw_data == global_peak)][0]
+
+    peak_range = numpy.where((PTIData.wavelengths >= peak_wavelength - dx_around_peak) &
+                             (PTIData.wavelengths <= peak_wavelength + dx_around_peak))
+    peak_range2 = numpy.where((PTIData.wavelengths >= 2*peak_wavelength - dx_around_peak) &
+                              (PTIData.wavelengths <= 2*peak_wavelength + dx_around_peak))
+
+    x_data = PTIData.wavelengths[peak_range]
+    y_data = PTIData.raw_data[peak_range]
+    x_data2 = PTIData.wavelengths[peak_range2]
+    y_data2 = PTIData.raw_data[peak_range2]
+
+    secondary_peak = numpy.max(y_data2)
+
+    guess = (global_peak, peak_wavelength, 2*dx_around_peak/2.35482, 0)
+    guess2 = (secondary_peak, 2*peak_wavelength, 2*dx_around_peak/2.35482, 0)
+
+    params, cov_matrix = gaussian_fit(x_data, y_data, guess)
+    params2, cov_matrix2 = gaussian_fit(x_data2, y_data2, guess2)
+
+    # x = numpy.arange(peak_wavelength - dx_around_peak, peak_wavelength + dx_around_peak, 0.1)
+    # x2 = numpy.arange(2*peak_wavelength - dx_around_peak, 2*peak_wavelength + dx_around_peak, 0.1)
+    # y = gaussian_func(x, params[0], params[1], params[2], params[3])
+    # y2 = gaussian_func(x2, params2[0], params2[1], params2[2], params2[3])
+    #
+    # plt.plot(PTIData.wavelengths, PTIData.raw_data)
+    # plt.plot(x, y)
+    # plt.plot(x2, y2)
+    # plt.show()
+    return params2[1] - params[1]
+
+
+def get_excitation_monochromator_offset(PTIData, dx_around_peak = 5):
+    theoretical_excitation= PTIData.ex_range[0]
+
+    actual_excitation = get_true_excitation_wavelength_from_secondary_peak(PTIData=PTIData,
+                                                                           dx_around_peak=dx_around_peak)
+    # print actual_excitation, theoretical_excitation,
+    offset = actual_excitation - theoretical_excitation
+
+    return offset
+
+
+def get_emission_monochromator_shift(PTIData, dx_around_peak = 5):
+    global_peak = numpy.max(PTIData.raw_data)
+    peak_wavelength = PTIData.wavelengths[numpy.where(PTIData.raw_data == global_peak)][0]
+    peak_range = numpy.where((PTIData.wavelengths >= peak_wavelength - dx_around_peak) &
+                             (PTIData.wavelengths <= peak_wavelength + dx_around_peak))
+    guess = (global_peak, peak_wavelength, 2 * dx_around_peak / 2.35482, 0)
+
+    gaussian_params, _ = gaussian_fit(x_data=PTIData.wavelengths[peak_range],
+                                      y_data=PTIData.raw_data[peak_range],
+                                      guess=guess)
+
+    actual_excitation = get_true_excitation_wavelength_from_secondary_peak(PTIData=PTIData,
+                                                                           dx_around_peak=dx_around_peak)
+    # print gaussian_params[1]
+    offset = actual_excitation - gaussian_params[1]
+
+    return offset
+
+
 def load_excorr_file(PTIData_instance, interp_method = 'cubic', split = 'none', shift = 0):
     
     excorr = numpy.genfromtxt('PTI/correction_data/excorr.txt',
@@ -141,7 +166,7 @@ def load_excorr_file(PTIData_instance, interp_method = 'cubic', split = 'none', 
                       y=excorr,
                       kind=interp_method,
                       bounds_error=False,
-                      fill_value=fill_value)(ex_wavelength - shift)
+                      fill_value=fill_value)(ex_wavelength + shift)
 
     return excorr
 
@@ -182,7 +207,10 @@ def load_emcorr_file(PTIData_instance, interp_method = 'cubic', FS = False, spli
     emcorr_wavelengths = numpy.arange(LUT_start, LUT_end + LUT_step, LUT_step)
 
     xvals = numpy.arange(LUT_start, LUT_end + step, step)
-    emcorr = interp1d(emcorr_wavelengths, emcorr, interp_method)(xvals)
+    emcorr = interp1d(x=emcorr_wavelengths,
+                      y=emcorr,
+                      kind=interp_method,
+                      fill_value='extrapolate')(xvals + shift)
 
     min_data_wavelength = PTIData_instance.wavelengths[0]
     max_data_wavelength = PTIData_instance.wavelengths[-1]
@@ -259,7 +287,7 @@ def correct_raw_to_cor(PTIData = None, use_decorrected_as_raw = False,
                        use_baseline_se = ('none', 'none'), gaussian_fit_dx_around_peak = 10,
                        ex_LUT_split='none', em_LUT_split='none',
                        ex_LUT_interpolation = 'cubic', em_LUT_interpolation = 'cubic', FS = False,
-                       LUT_shift = True, ex_LUT_shift_percent = 1,
+                       shift_LUT = False, ex_shift=0, em_shift=0,
                        undo_diode = True, undo_ex_LUT = True, undo_em_LUT = True,
                        apply_diode = True, apply_ex_LUT = True, apply_em_LUT = True,
                        const_diode=False):
@@ -286,18 +314,20 @@ def correct_raw_to_cor(PTIData = None, use_decorrected_as_raw = False,
     
     data.raw_data = data.raw_data - baseline
 
-    default_shift = 0
-    shift = calc_peak_shift_from_secondary(data, data.ex_range[0], gaussian_fit_dx_around_peak)
-    if not shift:
-        shift = default_shift
-    ex_shift = 0
-    em_shift = 0
-
-    if not LUT_shift:
-        pass
+    if not shift_LUT:
+        ex_shift = 0
+        em_shift = 0
     else:
-        ex_shift = ex_LUT_shift_percent * shift
-        em_shift = (1 - ex_LUT_shift_percent) * shift
+        if (2 * PTIData.ex_range[0] < PTIData.em_range[1]):
+            ex_shift = get_excitation_monochromator_offset(PTIData, dx_around_peak = 5)
+            em_shift = get_emission_monochromator_shift(PTIData, dx_around_peak = 5)
+        else:
+            pass
+
+    data.ex_monochromator_offset = ex_shift
+    data.em_monochromator_offset = em_shift
+
+    # print ex_shift,em_shift,'\n'
 
     corrections = get_corrections(PTIData_instance=data,
                                   ex_interp_method=ex_LUT_interpolation, em_interp_method=em_LUT_interpolation, FS=FS,
@@ -306,7 +336,21 @@ def correct_raw_to_cor(PTIData = None, use_decorrected_as_raw = False,
                                   diode=apply_diode, excorr=apply_ex_LUT, emcorr=apply_em_LUT,
                                   const_diode=const_diode)
 
+
+
     data.cor_data = data.raw_data * corrections
+
+    # corrections2 = get_corrections(PTIData_instance=data,
+    #                               ex_interp_method=ex_LUT_interpolation, em_interp_method=em_LUT_interpolation, FS=FS,
+    #                               ex_split=ex_LUT_split, em_split=em_LUT_split,
+    #                               ex_shift=0, em_shift=0,
+    #                               diode=apply_diode, excorr=apply_ex_LUT, emcorr=apply_em_LUT,
+    #                               const_diode=const_diode)
+    # test= data.raw_data * corrections2
+    #
+    # plt.plot(data.wavelengths, test, 'r--')
+    # plt.plot(data.wavelengths, data.cor_data, 'k')
+    # plt.show()
     
     
     return data
