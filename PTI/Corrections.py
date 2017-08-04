@@ -53,7 +53,7 @@ def linear_baseline(PTIData, list_of_ranges,
             'minus': fit_params[1] - errors[1],
             'plus': fit_params[1] + errors[1]}
 
-    baseline = slope[use_slope_se] * PTIData.wavelengths + incpt[use_incpt_se]
+    baseline = linear_func(x=PTIData.wavelengths, m=slope[use_slope_se],b=incpt[use_incpt_se])
 
     # Return the baseline array as well as the fit parameters and errors.
     return baseline, fit_params, errors
@@ -311,23 +311,19 @@ def correct_raw_to_cor(PTIData = None, use_decorrected_as_raw = False,
     data.baseline_incpt_se = errors[0]
     data.baseline_slope_se = errors[1]
 
-    
     data.raw_data = data.raw_data - baseline
 
     if not shift_LUT:
         ex_shift = 0
         em_shift = 0
     else:
-        if (2 * PTIData.ex_range[0] < PTIData.em_range[1]):
+        if 2 * PTIData.ex_range[0] < PTIData.em_range[1]:
             ex_shift = get_excitation_monochromator_offset(PTIData, dx_around_peak = 5)
             em_shift = get_emission_monochromator_shift(PTIData, dx_around_peak = 5)
         else:
             pass
-
     data.ex_monochromator_offset = ex_shift
     data.em_monochromator_offset = em_shift
-
-    # print ex_shift,em_shift,'\n'
 
     corrections = get_corrections(PTIData_instance=data,
                                   ex_interp_method=ex_LUT_interpolation, em_interp_method=em_LUT_interpolation, FS=FS,
@@ -339,18 +335,5 @@ def correct_raw_to_cor(PTIData = None, use_decorrected_as_raw = False,
 
 
     data.cor_data = data.raw_data * corrections
-
-    # corrections2 = get_corrections(PTIData_instance=data,
-    #                               ex_interp_method=ex_LUT_interpolation, em_interp_method=em_LUT_interpolation, FS=FS,
-    #                               ex_split=ex_LUT_split, em_split=em_LUT_split,
-    #                               ex_shift=0, em_shift=0,
-    #                               diode=apply_diode, excorr=apply_ex_LUT, emcorr=apply_em_LUT,
-    #                               const_diode=const_diode)
-    # test= data.raw_data * corrections2
-    #
-    # plt.plot(data.wavelengths, test, 'r--')
-    # plt.plot(data.wavelengths, data.cor_data, 'k')
-    # plt.show()
-    
     
     return data

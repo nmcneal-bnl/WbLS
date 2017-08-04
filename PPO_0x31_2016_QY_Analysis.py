@@ -188,13 +188,13 @@ def run_correction_region_options():
 def run_all_options():
     f = open("QY Uncertainty Data/PPO_0x31/all_options.txt", 'w+')
     f.write("Shift LUT?,Intercept SE, Slope SE, Ex LUT Interpolation, Em LUT Interpolation," +
-            "Ex LUT Split, Em LUT Split, Constant Diode, 310 nm, 320 nm, 330 nm, 340 nm\n")
-    for shift_LUT in LUT_shifting_options:
-        for use_baseline_se in baseline_se_options:
-            for ex_LUT_interpolation, em_LUT_interpolation in LUT_interpolation_options:
-                for ex_LUT_split, em_LUT_split in LUT_splitting_options:
-                    for const_diode in const_diode_options:
-                        for start in correction_region_initial_wavelengths_long_step:
+            "Ex LUT Split, Em LUT Split, Constant Diode, Start of Correction Region, 310 nm, 320 nm, 330 nm, 340 nm\n")
+    for start in correction_region_initial_wavelengths_long_step:
+        for shift_LUT in LUT_shifting_options:
+            for use_baseline_se in baseline_se_options:
+                for ex_LUT_interpolation, em_LUT_interpolation in LUT_interpolation_options:
+                    for ex_LUT_split, em_LUT_split in LUT_splitting_options:
+                        for const_diode in const_diode_options:
                             f.write(str(shift_LUT) + ',')
                             f.write(use_baseline_se[0] + ',' + use_baseline_se[0] + ',')
                             f.write(ex_LUT_interpolation + ',' + em_LUT_interpolation + ',')
@@ -215,10 +215,10 @@ def run_all_options():
 
 print QY_analysis()[0]
 
-run_baseline_options()
-run_const_diode_options()
-run_LUT_interpolation_options()
-run_LUT_splitting_options()
-run_LUT_shifting_options()
-run_correction_region_options()
+# run_baseline_options()
+# run_const_diode_options()
+# run_LUT_interpolation_options()
+# run_LUT_splitting_options()
+# run_LUT_shifting_options()
+# run_correction_region_options()
 run_all_options()

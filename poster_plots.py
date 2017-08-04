@@ -6,9 +6,11 @@ mpl.rc('font',family='Arial')
 import PTI.Corrections as PTICorr
 from PTI.ReadDataFiles import PTIData
 
+test = "Henry/Sphere/PPO_ETOH/EmissionScan_3x14gperL_PPOinETOH_ex340_2sec_160831.txt"
+
 '''Showing how the baseline and corrections affect data'''
-data1 = PTIData("Henry/Sphere/PPO_ETOH/EmissionScan_3x14gperL_PPOinETOH_ex340_2sec_160831.txt")
-data1_baseline,_,_ = PTICorr.linear_baseline(data1, list_of_ranges=[[300,335], [450,650]])
+data1 = PTIData(test)
+data1_baseline,_,_ = PTICorr.linear_baseline(data1, list_of_ranges=[[300,325], [450,650]])
 
 fig1 = plt.figure(figsize=(15,10))
 ax1 = plt.subplot2grid((2,2), (0,0))
@@ -22,33 +24,32 @@ ax2.set_title("Total Correction Factor", fontsize = 12)
 ax3.set_title("Final Corrected Emission Spectrum", fontsize = 12)
 
 
-ax1.plot(data1.wavelengths, data1.raw_data/1000,"#878787")
-ax1.plot(data1.wavelengths, data1_baseline/1000,"#dc143c")
+ax1.plot(data1.wavelengths, data1.raw_data/1000,"#d60027")
 ax1.set_ylabel("Emission Intensity [a.u.]", fontsize = 12)
-ax1.legend(["Raw Data", "Fitted linear baseline"], fontsize = 12)
-ax1.xaxis.set_ticks(range(300, 460, 75))
+ax1.axhline(y=0, xmin=0, xmax=1, linewidth=1, color = 'k')
+ax1.legend(["Raw Data"], fontsize = 12)
+ax1.xaxis.set_ticks(range(300, 510, 100))
 ax1.yaxis.set_ticks(range(0, 7, 3))
 
 corrections = PTICorr.get_corrections(data1)
 ax2.plot(data1.wavelengths, corrections/1000,"#268a47")
 ax2.set_ylabel("Magnitude [a.u.]", fontsize = 12)
-ax2.xaxis.set_ticks(range(300, 460, 75))
+ax2.xaxis.set_ticks(range(300, 510, 100))
 ax2.yaxis.set_ticks(numpy.arange(0, 0.07, .03))
 
 
-data1 = PTICorr.correct_raw_to_cor(PTIData=data1, baseline_fit_ranges=[[300,325], [450,650]])
+data1 = PTICorr.correct_raw_to_cor(PTIData=data1, baseline_fit_ranges=[[300,335], [450,650]])
 ax3.axhline(y=0, xmin=0, xmax=1, linewidth=1, color = 'k')
 ax3.plot(data1.wavelengths, data1.cor_data/1000, "#3857ff")
 ax3.set_ylabel("Emission Intensity [a.u.]", fontsize = 12)
-ax3.xaxis.set_ticks(range(300, 460, 25))
+ax3.xaxis.set_ticks(range(300, 510, 100))
 ax3.yaxis.set_ticks(range(0, 150, 50))
-
 
 
 fig1.text(0.5, 0.04, "Wavelength [nm]", weight='semibold', ha='center', fontsize = 15)
 
 for ax in [ax1,ax2,ax3]:
-    ax.set_xlim(300,450)
+    ax.set_xlim(300,500)
 
 
 plt.show()

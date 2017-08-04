@@ -292,6 +292,15 @@ class PTIData(object):
                     self.UTrace[i-6] = abs(float(wrds[1]))**(0.5)
         return
 
+    def get_date(self, space="     "):
+        date = "%d-%d-%d%s%d:%02d" %(self.acq_start.tm_year,
+                        self.acq_start.tm_mon,
+                        self.acq_start.tm_mday,
+                        space,
+                        self.acq_start.tm_hour,
+                        self.acq_start.tm_min)
+        return date
+
     def plot(self, fig_size = (10,10)):
         from matplotlib import pyplot as plt
 
@@ -301,16 +310,12 @@ class PTIData(object):
         ax3 = plt.subplot2grid((2,2), (1,0), colspan = 2)
 
         ax1.plot(self.wavelengths, self.raw_data)
-        if self.baseline is not None:
-            ax1.plot(self.wavelengths, self.baseline, 'r')
         ax2.plot(self.wavelengths, self.diode)
         ax3.plot(self.wavelengths, self.cor_data)
 
-        date = "%s-%s-%s     %s:%s" %(self.acq_start.tm_year,
-                                self.acq_start.tm_mon,
-                                self.acq_start.tm_mday,
-                                self.acq_start.tm_hour,
-                                self.acq_start.tm_min)
+        
+
+        date = self.get_date()
 
         fig.suptitle(self.file_path + '\n' + date)
         ax1.set_title("Raw Data", fontsize = 15)
@@ -321,15 +326,6 @@ class PTIData(object):
             ax.grid()
             ax.set_xlim([self.wavelengths[0], self.wavelengths[-1]])
         return fig
-
-    def get_date(self, space="     "):
-        date = "%d-%d-%d%s%d:%02d" %(self.acq_start.tm_year,
-                        self.acq_start.tm_mon,
-                        self.acq_start.tm_mday,
-                        space,
-                        self.acq_start.tm_hour,
-                        self.acq_start.tm_min)
-        return date
        
 
     def __add__(self, other):
