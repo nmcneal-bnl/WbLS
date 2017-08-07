@@ -215,10 +215,10 @@ def run_all_options():
 
 print QY_analysis()[0]
 
-# run_baseline_options()
-# run_const_diode_options()
-# run_LUT_interpolation_options()
-# run_LUT_splitting_options()
-# run_LUT_shifting_options()
-# run_correction_region_options()
+run_baseline_options()
+run_const_diode_options()
+run_LUT_interpolation_options()
+run_LUT_splitting_options()
+run_LUT_shifting_options()
+run_correction_region_options()
 run_all_options()

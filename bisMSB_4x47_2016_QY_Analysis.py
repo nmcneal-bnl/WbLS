@@ -190,8 +190,8 @@ def run_correction_region_options():
 
 def run_all_options():
     f = open("QY Uncertainty Data/bisMSB_4x47/all_options.txt", 'w+')
-    f.write("Intercept SE,Slope SE,Constant Diode,Ex LUT Interpolation,Em LUT Interpolation," +
-            "Ex LUT Split,Em LUT Split,Shift LUT?, Start of Correction Region,350 nm,360 nm,370 nm, 380 nm\n")
+    f.write("InterceptSE,Slope SE,Constant Diode,Ex LUT Interpolation,Em LUT Interpolation," +
+            "Ex LUT Split,Em LUT Split,Shift LUT?,Start of Correction Region,350 nm,360 nm,370 nm,380 nm\n")
     for start in correction_region_initial_wavelengths_long_step:
         for shift_LUT in LUT_shifting_options:
             for use_baseline_se in baseline_se_options:
@@ -220,10 +220,10 @@ def run_all_options():
 
 print QY_analysis()[0]
 
-# run_baseline_options()
-# run_const_diode_options()
-# run_LUT_interpolation_options()
-# run_LUT_splitting_options()
-# run_LUT_shifting_options()
-# run_correction_region_options()
-# run_all_options()
+run_baseline_options()
+run_const_diode_options()
+run_LUT_interpolation_options()
+run_LUT_splitting_options()
+run_LUT_shifting_options()
+run_correction_region_options()
+run_all_options()

@@ -1,4 +1,4 @@
-Shift LUT?,Intercept SE, Slope SE, Ex LUT Interpolation, Em LUT Interpolation,Ex LUT Split, Em LUT Split, Constant Diode, Start of Correction Region, 0.04 mM, 0.43 mM, 4.3 mM
+Shift LUT?,Intercept SE,Slope SE,Ex LUT Interpolation,Em LUT Interpolation,Ex LUT Split,Em LUT Split,Constant Diode,Start of Correction Region,0.04 mM,0.43 mM,4.3 mM
 False,none,none,linear,linear,none,none,False,370,1.02784982784,1.19451330576,1.21595425228
 False,none,none,linear,linear,none,none,True,370,1.02702602854,1.1924726015,1.21498481614
 False,none,none,linear,linear,none,even,False,370,1.03602156632,1.20418781049,1.22554339592
@@ -41471,4 +41471,3 @@ True,minus,minus,cubic,cubic,odd,even,False,440,1.15278072976,1.38878892297,0.98
 True,minus,minus,cubic,cubic,odd,even,True,440,1.15281553978,1.38756863002,0.983174684979
 True,minus,minus,cubic,cubic,odd,odd,False,440,1.14978562599,1.37590780249,0.985443707029
 True,minus,minus,cubic,cubic,odd,odd,True,440,1.14982593481,1.37471219985,0.983377211947
-211947
