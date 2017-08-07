@@ -11,18 +11,13 @@ from PTI.ReadDataFiles import PTIData
 import PTI.QuantumYield as PTIQY
 
 # <editor-fold desc="Importing">
-# The file paths for the blank LAB measurements
-# The file paths for the blank ethanol measurements
-EtOH_paths = ["Henry/Sphere/PPO_ETOH/EmissionScan_ETOH_ex310_2sec_160830.txt",
-              "Henry/Sphere/PPO_ETOH/EmissionScan_ETOH_ex320_2sec_160830.txt",
-              "Henry/Sphere/PPO_ETOH/EmissionScan_ETOH_ex330_2sec_160830.txt",
-              "Henry/Sphere/PPO_ETOH/EmissionScan_ETOH_ex340_2sec_160830.txt"]
+# The file paths for the blank cyclohexane measurements
+cyclo_paths = ["Henry/Emission/PPOcyclo/Jul7/cyclo2pt5g.txt"]
 
-# The file paths for the 0.31 mg/L PPO in ethanol measurements
-PPO_0x31_paths = ["Henry/Sphere/PPO_ETOH/EmissionScan_0x31gperL_PPOinETOH_ex310_2sec_160831.txt",
-                  "Henry/Sphere/PPO_ETOH/EmissionScan_0x31gperL_PPOinETOH_ex320_2sec_160831.txt",
-                  "Henry/Sphere/PPO_ETOH/EmissionScan_0x31gperL_PPOinETOH_ex330_2sec_160831.txt",
-                  "Henry/Sphere/PPO_ETOH/EmissionScan_0x31gperL_PPOinETOH_ex340_2sec_160831.txt"]
+# The file paths for the flurophore measurements
+PPO_cyclo_paths = ["Henry/Emission/PPOcyclo/Jul7/pt04mMPPOcyclo2pt5g.txt",
+                   "Henry/Emission/PPOcyclo/Jul7/pt43mMPPOcyclo2pt5g.txt",
+                   "Henry/Emission/PPOcyclo/Jul7/4pt3mMPPOcyclo2pt5g.txt"]
 
 
 def convert_paths_to_PTIData_objs(list_of_paths):
@@ -31,13 +26,13 @@ def convert_paths_to_PTIData_objs(list_of_paths):
         list_of_PTIData.append(PTIData(path))
     return list_of_PTIData
 
-ETOH = convert_paths_to_PTIData_objs(EtOH_paths)
-PPO_0x31 = convert_paths_to_PTIData_objs(PPO_0x31_paths)
+cyclo = convert_paths_to_PTIData_objs(cyclo_paths)
+PPO_cyclo = convert_paths_to_PTIData_objs(PPO_cyclo_paths)
 # </editor-fold>
 
 DEFAULT_EX_MONOCHROMATOR_SHIFT = 2.5
 DEFAULT_EM_MONOCHROMATOR_SHIFT = 2.0
-DEFAULT_CORRECTION_REGION_START = 360
+DEFAULT_CORRECTION_REGION_START = 400
 
 
 def QY_analysis(correction_region_start = DEFAULT_CORRECTION_REGION_START,
@@ -48,8 +43,7 @@ def QY_analysis(correction_region_start = DEFAULT_CORRECTION_REGION_START,
                 const_diode = False,
                 use_baseline_se = ('none', 'none')):
 
-    ETOH_ex_wavelengths = [310, 320, 330, 340]
-    corrected_ETOH = [PTICorr.correct_raw_to_cor(ETOH[i], baseline_fit_ranges = [[300, ETOH_ex_wavelengths[i] - 5], [450, 650]],
+    corrected_cyclo = [PTICorr.correct_raw_to_cor(cyclo[i], baseline_fit_ranges = [[300, 305], [320, 600]],
                                                  ex_LUT_split=ex_LUT_split, em_LUT_split=em_LUT_split,
                                                  shift_LUT=shift_LUT,
                                                  ex_shift=ex_shift, em_shift=em_shift,
@@ -57,9 +51,9 @@ def QY_analysis(correction_region_start = DEFAULT_CORRECTION_REGION_START,
                                                  em_LUT_interpolation=em_LUT_interpolation,
                                                  const_diode = const_diode,
                                                  use_baseline_se=use_baseline_se)
-                      for i in range(len(ETOH))]
+                      for i in range(len(cyclo))]
 
-    corrected_PPO_0x31 = [PTICorr.correct_raw_to_cor(PPO_0x31[i],baseline_fit_ranges = [[300, ETOH_ex_wavelengths[i] - 5], [450, 650]],
+    corrected_PPO_cyclo = [PTICorr.correct_raw_to_cor(PPO_cyclo[i],baseline_fit_ranges = [[300, 305], [450, 600]],
                                                      ex_LUT_split=ex_LUT_split, em_LUT_split=em_LUT_split,
                                                      shift_LUT=shift_LUT,
                                                      ex_shift=ex_shift, em_shift=em_shift,
@@ -67,17 +61,17 @@ def QY_analysis(correction_region_start = DEFAULT_CORRECTION_REGION_START,
                                                      em_LUT_interpolation=em_LUT_interpolation,
                                                      const_diode = const_diode,
                                                      use_baseline_se=use_baseline_se)
-                      for i in range(len(PPO_0x31))]
+                      for i in range(len(PPO_cyclo))]
     QYs = list()
     correction_ratios = list()
-    for blank, fluor in zip(corrected_ETOH, corrected_PPO_0x31):
+    for blank, fluor in zip(3*corrected_cyclo, corrected_PPO_cyclo):
         # Define the emission region used for the quantum yield calculation
         ex_wavelength = blank.ex_range[0]
         ex_delta = 10
         ex_int_range = [ex_wavelength - ex_delta, ex_wavelength + ex_delta]
 
-        em_int_range = [320, 650]
-        correction_int_range = [correction_region_start, 650]
+        em_int_range = [325, 600]
+        correction_int_range = [correction_region_start, 600]
 
         # QY
         num_absorbed = PTIQY.integrate_between(blank, fluor, ex_int_range)
@@ -93,8 +87,7 @@ def QY_analysis(correction_region_start = DEFAULT_CORRECTION_REGION_START,
     similar_ratios = correction_ratios[np.where(abs(correction_ratios - first_ratio) < ratio_accepted_error)]
 
     corrected_QYs = [QYs[i] * correction_ratios[i] / np.mean(similar_ratios)
-                     for i in range(len(QYs))]
-
+                                 for i in range(len(QYs))]
     return corrected_QYs, correction_ratios
 
 
@@ -105,13 +98,13 @@ LUT_splitting_options = [(a,b) for a in ['none', 'even', 'odd'] for b in ['none'
 const_diode_options = [False, True]
 baseline_se_options = [(a,b) for a in ['none','plus','minus'] for b in ['none','plus','minus']]
 LUT_shifting_options = [False, True]
-correction_region_initial_wavelengths = range(350, 420+2, 2)
-correction_region_initial_wavelengths_long_step = range(350, 420+10, 10)
+correction_region_initial_wavelengths = range(370, 440+2, 2)
+correction_region_initial_wavelengths_long_step = range(370, 440+10, 10)
 
 
 def run_baseline_options():
-    f = open("QY Uncertainty Data/PPO_0x31/baseline_options.txt", 'w+')
-    f.write("Intercept SE, Slope SE, 310 nm, 320 nm, 330 nm, 340 nm\n")
+    f = open("QY Uncertainty Data/PPO_cyclo/baseline_options.txt", 'w+')
+    f.write("Intercept SE, Slope SE, 0.04 mM, 0.43 mM, 4.3 mM\n")
     for option in baseline_se_options:
         f.write(','.join(option))
         for item in QY_analysis(use_baseline_se=option)[0]:
@@ -123,8 +116,8 @@ def run_baseline_options():
 
 
 def run_const_diode_options():
-    f = open("QY Uncertainty Data/PPO_0x31/const_diode.txt", 'w+')
-    f.write("Constant Diode?, 310 nm, 320 nm, 330 nm, 340 nm\n")
+    f = open("QY Uncertainty Data/PPO_cyclo/const_diode.txt", 'w+')
+    f.write("Constant Diode?, 0.04 mM, 0.43 mM, 4.3 mM\n")
     for option in const_diode_options:
         f.write(str(option))
         for item in QY_analysis(const_diode=option)[0]:
@@ -134,8 +127,8 @@ def run_const_diode_options():
 
 
 def run_LUT_interpolation_options():
-    f = open("QY Uncertainty Data/PPO_0x31/LUT_interpolation.txt", 'w+')
-    f.write("Ex LUT Interpolation, Em LUT Interpolation, 310 nm, 320 nm, 330 nm, 340 nm\n")
+    f = open("QY Uncertainty Data/PPO_cyclo/LUT_interpolation.txt", 'w+')
+    f.write("Ex LUT Interpolation, Em LUT Interpolation, 0.04 mM, 0.43 mM, 4.3 mM\n")
     for option in LUT_interpolation_options:
         f.write(str(option[0])+',')
         f.write(str(option[1]))
@@ -147,8 +140,8 @@ def run_LUT_interpolation_options():
 
 
 def run_LUT_splitting_options():
-    f = open("QY Uncertainty Data/PPO_0x31/LUT_splitting.txt", 'w+')
-    f.write("Ex LUT Splitting, Em LUT Splitting, 310 nm, 320 nm, 330 nm, 340 nm\n")
+    f = open("QY Uncertainty Data/PPO_cyclo/LUT_splitting.txt", 'w+')
+    f.write("Ex LUT Splitting, Em LUT Splitting, 0.04 mM, 0.43 mM, 4.3 mM\n")
     for option in LUT_splitting_options:
         f.write(str(option[0])+',')
         f.write(str(option[1]))
@@ -172,7 +165,7 @@ def run_LUT_shifting_options():
 
 
 def run_correction_region_options():
-    f = open("QY Uncertainty Data/PPO_0x31/correction_region_start.txt", 'w+')
+    f = open("QY Uncertainty Data/PPO_cyclo/correction_region_start.txt", 'w+')
     f.write("Beginning of Correction Region, 350 nm Ratio, 360 nm Ratio, 370 nm Ratio, 380 nm Ratio,"+
             "350 nm, 360 nm, 370 nm, 380 nm\n")
     for option in correction_region_initial_wavelengths:
@@ -186,9 +179,9 @@ def run_correction_region_options():
 
 
 def run_all_options():
-    f = open("QY Uncertainty Data/PPO_0x31/all_options.txt", 'w+')
+    f = open("QY Uncertainty Data/PPO_cyclo/all_options.txt", 'w+')
     f.write("Shift LUT?,Intercept SE, Slope SE, Ex LUT Interpolation, Em LUT Interpolation," +
-            "Ex LUT Split, Em LUT Split, Constant Diode, Start of Correction Region, 310 nm, 320 nm, 330 nm, 340 nm\n")
+            "Ex LUT Split, Em LUT Split, Constant Diode, Start of Correction Region, 0.04 mM, 0.43 mM, 4.3 mM\n")
     for start in correction_region_initial_wavelengths_long_step:
         for shift_LUT in LUT_shifting_options:
             for use_baseline_se in baseline_se_options:
@@ -213,7 +206,7 @@ def run_all_options():
                             f.write('\n')
     f.close()
 
-print QY_analysis()[0]
+# print QY_analysis()[0]
 
 # run_baseline_options()
 # run_const_diode_options()

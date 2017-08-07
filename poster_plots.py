@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 import numpy
-mpl.rc('font',family='Arial')
+mpl.rc('font',family='Times New Roman')
 
 import PTI.Corrections as PTICorr
 from PTI.ReadDataFiles import PTIData
@@ -18,7 +18,7 @@ ax2 = plt.subplot2grid((2,2), (0,1))
 ax3 = plt.subplot2grid((2,2), (1,0), colspan=2)
 
 fig1.suptitle("Raw and Corrected Emission Spectra of PPO in Ethanol Excited at 340 nm\n",
-              weight='semibold', y=0.95, fontsize=20)
+              weight='bold', y=0.95, fontsize=20)
 ax1.set_title("Initial Raw Emission Spectrum", fontsize = 12)
 ax2.set_title("Total Correction Factor", fontsize = 12)
 ax3.set_title("Final Corrected Emission Spectrum", fontsize = 12)
@@ -50,9 +50,10 @@ fig1.text(0.5, 0.04, "Wavelength [nm]", weight='semibold', ha='center', fontsize
 
 for ax in [ax1,ax2,ax3]:
     ax.set_xlim(300,500)
+    ax.grid()
 
 
-plt.show()
+plt.savefig('test.svg', format='svg', dpi=1200)
 
 '''Showing an example of the quantum yield calculation'''
 '''

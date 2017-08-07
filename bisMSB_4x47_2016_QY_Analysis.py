@@ -85,11 +85,12 @@ def QY_analysis(correction_region_start = DEFAULT_CORRECTION_REGION_START,
         QYs.append(num_emitted / num_absorbed)
         correction_ratios.append(correction_area / num_emitted)
 
-    if abs(correction_ratios[1] - correction_ratios[0]) < 0.05:
-        true_correction_ratio = np.mean(correction_ratios[:2])
-    else:
-        true_correction_ratio = correction_ratios[0]
-    corrected_QYs = [QYs[i] * correction_ratios[i] / true_correction_ratio
+    correction_ratios = np.array(correction_ratios)
+    first_ratio = correction_ratios[0]
+    ratio_accepted_error = 0.1
+    similar_ratios = correction_ratios[np.where(abs(correction_ratios - first_ratio) < ratio_accepted_error)]
+
+    corrected_QYs = [QYs[i] * correction_ratios[i] / np.mean(similar_ratios)
                                  for i in range(len(QYs))]
 
     return corrected_QYs, correction_ratios
