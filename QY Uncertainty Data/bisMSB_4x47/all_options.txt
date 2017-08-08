@@ -1,4 +1,4 @@
-Intercept SE,Slope SE,Constant Diode,Ex LUT Interpolation,Em LUT Interpolation,Ex LUT Split,Em LUT Split,Shift LUT?, Start of Correction Region,350 nm,360 nm,370 nm,380 nm
+InterceptSE,Slope SE,Constant Diode,Ex LUT Interpolation,Em LUT Interpolation,Ex LUT Split,Em LUT Split,Shift LUT?,Start of Correction Region,350 nm,360 nm,370 nm,380 nm
 none,none,False,linear,linear,none,none,False,390,0.749557258638,0.757935757019,0.728782813977,0.75940965332
 none,none,True,linear,linear,none,none,False,390,0.742147255866,0.757327965991,0.734700135806,0.758377362408
 none,none,False,linear,linear,none,even,False,390,0.748896547374,0.761075724683,0.724083098031,0.759318028062

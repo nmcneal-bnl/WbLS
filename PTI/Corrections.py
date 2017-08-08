@@ -335,5 +335,6 @@ def correct_raw_to_cor(PTIData = None, use_decorrected_as_raw = False,
 
 
     data.cor_data = data.raw_data * corrections
+    data.raw_data += baseline
     
     return data

@@ -103,8 +103,8 @@ correction_region_initial_wavelengths_long_step = range(370, 440+10, 10)
 
 
 def run_baseline_options():
-    f = open("QY Uncertainty Data/PPO_cyclo/baseline_options.txt", 'w+')
-    f.write("Intercept SE, Slope SE, 0.04 mM, 0.43 mM, 4.3 mM\n")
+    f = open("QY Uncertainty Data/PPO_cyclo/baseline_options.txt",'w+')
+    f.write("Intercept SE,Slope SE,0.04 mM,0.43 mM,4.3 mM\n")
     for option in baseline_se_options:
         f.write(','.join(option))
         for item in QY_analysis(use_baseline_se=option)[0]:
@@ -116,8 +116,8 @@ def run_baseline_options():
 
 
 def run_const_diode_options():
-    f = open("QY Uncertainty Data/PPO_cyclo/const_diode.txt", 'w+')
-    f.write("Constant Diode?, 0.04 mM, 0.43 mM, 4.3 mM\n")
+    f = open("QY Uncertainty Data/PPO_cyclo/const_diode.txt",'w+')
+    f.write("Constant Diode?,0.04 mM,0.43 mM,4.3 mM\n")
     for option in const_diode_options:
         f.write(str(option))
         for item in QY_analysis(const_diode=option)[0]:
@@ -127,8 +127,8 @@ def run_const_diode_options():
 
 
 def run_LUT_interpolation_options():
-    f = open("QY Uncertainty Data/PPO_cyclo/LUT_interpolation.txt", 'w+')
-    f.write("Ex LUT Interpolation, Em LUT Interpolation, 0.04 mM, 0.43 mM, 4.3 mM\n")
+    f = open("QY Uncertainty Data/PPO_cyclo/LUT_interpolation.txt",'w+')
+    f.write("Ex LUT Interpolation,Em LUT Interpolation,0.04 mM,0.43 mM,4.3 mM\n")
     for option in LUT_interpolation_options:
         f.write(str(option[0])+',')
         f.write(str(option[1]))
@@ -140,8 +140,8 @@ def run_LUT_interpolation_options():
 
 
 def run_LUT_splitting_options():
-    f = open("QY Uncertainty Data/PPO_cyclo/LUT_splitting.txt", 'w+')
-    f.write("Ex LUT Splitting, Em LUT Splitting, 0.04 mM, 0.43 mM, 4.3 mM\n")
+    f = open("QY Uncertainty Data/PPO_cyclo/LUT_splitting.txt",'w+')
+    f.write("Ex LUT Splitting,Em LUT Splitting,0.04 mM,0.43 mM,4.3 mM\n")
     for option in LUT_splitting_options:
         f.write(str(option[0])+',')
         f.write(str(option[1]))
@@ -153,8 +153,8 @@ def run_LUT_splitting_options():
 
 
 def run_LUT_shifting_options():
-    f = open("QY Uncertainty Data/bisMSB_4x47/LUT_shifting.txt", 'w+')
-    f.write("Offsetting LUT?, 350 nm, 360 nm, 370 nm, 380 nm\n")
+    f = open("QY Uncertainty Data/PPO_cyclo/LUT_shifting.txt",'w+')
+    f.write("Offsetting LUT?,0.04 mM,0.43 mM,4.3 mM\n")
     for option in LUT_shifting_options:
         f.write(str(option))
         for item in QY_analysis(shift_LUT=option)[0]:
@@ -165,13 +165,13 @@ def run_LUT_shifting_options():
 
 
 def run_correction_region_options():
-    f = open("QY Uncertainty Data/PPO_cyclo/correction_region_start.txt", 'w+')
-    f.write("Beginning of Correction Region, 350 nm Ratio, 360 nm Ratio, 370 nm Ratio, 380 nm Ratio,"+
-            "350 nm, 360 nm, 370 nm, 380 nm\n")
+    f = open("QY Uncertainty Data/PPO_cyclo/correction_region_start.txt",'w+')
+    f.write("Beginning of Correction Region,0.04 mM Ratio,0.43 mM Ratio,4.3 mM Ratio,"+
+            "0.04 mM,0.43 mM,4.3 mM\n")
     for option in correction_region_initial_wavelengths:
         f.write(str(option))
-        qys, ratios = QY_analysis(correction_region_start=option)
-        for item in ratios + qys:
+        qys,ratios = QY_analysis(correction_region_start=option)
+        for item in np.append(ratios, qys):
             f.write(',' + str(item))
         f.write('\n')
     f.close()
@@ -179,9 +179,9 @@ def run_correction_region_options():
 
 
 def run_all_options():
-    f = open("QY Uncertainty Data/PPO_cyclo/all_options.txt", 'w+')
-    f.write("Shift LUT?,Intercept SE, Slope SE, Ex LUT Interpolation, Em LUT Interpolation," +
-            "Ex LUT Split, Em LUT Split, Constant Diode, Start of Correction Region, 0.04 mM, 0.43 mM, 4.3 mM\n")
+    f = open("QY Uncertainty Data/PPO_cyclo/all_options.txt",'w+')
+    f.write("Shift LUT?,Intercept SE,Slope SE,Ex LUT Interpolation,Em LUT Interpolation," +
+            "Ex LUT Split,Em LUT Split,Constant Diode,Start of Correction Region,0.04 mM,0.43 mM,4.3 mM\n")
     for start in correction_region_initial_wavelengths_long_step:
         for shift_LUT in LUT_shifting_options:
             for use_baseline_se in baseline_se_options:

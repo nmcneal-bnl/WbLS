@@ -110,7 +110,7 @@ LUT_shifting_options = [False, True]
 
 def run_baseline_options():
     f = open("QY Uncertainty Data/bisMSB_4x47/baseline_options.txt", 'w+')
-    f.write("Intercept SE, Slope SE, 350 nm, 360 nm, 370 nm, 380 nm\n")
+    f.write("Intercept SE,Slope SE,350 nm,360 nm,370 nm,380 nm\n")
     for option in baseline_se_options:
         f.write(','.join(option))
         for item in QY_analysis(use_baseline_se=option)[0]:
@@ -123,8 +123,8 @@ def run_baseline_options():
 
 
 def run_const_diode_options():
-    f = open("QY Uncertainty Data/bisMSB_4x47/const_diode.txt", 'w+')
-    f.write("Constant Diode?, 350 nm, 360 nm, 370 nm, 380 nm\n")
+    f = open("QY Uncertainty Data/bisMSB_4x47/const_diode.txt",'w+')
+    f.write("Constant Diode?,350 nm,360 nm,370 nm,380 nm\n")
     for option in const_diode_options:
         f.write(str(option))
         for item in QY_analysis(const_diode=option)[0]:
@@ -135,8 +135,8 @@ def run_const_diode_options():
 
 
 def run_LUT_interpolation_options():
-    f = open("QY Uncertainty Data/bisMSB_4x47/LUT_interpolation.txt", 'w+')
-    f.write("Ex LUT Interpolation, Em LUT Interpolation, 350 nm, 360 nm, 370 nm, 380 nm\n")
+    f = open("QY Uncertainty Data/bisMSB_4x47/LUT_interpolation.txt",'w+')
+    f.write("Ex LUT Interpolation,Em LUT Interpolation,350 nm,360 nm,370 nm,380 nm\n")
     for option in LUT_interpolation_options:
         f.write(str(option[0])+',')
         f.write(str(option[1]))
@@ -149,8 +149,8 @@ def run_LUT_interpolation_options():
 
 
 def run_LUT_splitting_options():
-    f = open("QY Uncertainty Data/bisMSB_4x47/LUT_splitting.txt", 'w+')
-    f.write("Ex LUT Splitting, Em LUT Splitting, 350 nm, 360 nm, 370 nm, 380 nm\n")
+    f = open("QY Uncertainty Data/bisMSB_4x47/LUT_splitting.txt",'w+')
+    f.write("Ex LUT Splitting,Em LUT Splitting,350 nm,360 nm,370 nm,380 nm\n")
     for option in LUT_splitting_options:
         f.write(str(option[0])+',')
         f.write(str(option[1]))
@@ -163,11 +163,12 @@ def run_LUT_splitting_options():
 
 
 def run_LUT_shifting_options():
-    f = open("QY Uncertainty Data/bisMSB_4x47/LUT_shifting.txt", 'w+')
-    f.write("Offsetting LUT?, 350 nm, 360 nm, 370 nm, 380 nm\n")
+    f = open("QY Uncertainty Data/bisMSB_4x47/LUT_shifting.txt",'w+')
+    f.write("Offsetting LUT?,350 nm,360 nm,370 nm,380 nm\n")
     for option in LUT_shifting_options:
         f.write(str(option))
         for item in QY_analysis(shift_LUT=option)[0]:
+            print item
             f.write(',' + str(item))
         f.write('\n')
     f.close()
@@ -175,13 +176,13 @@ def run_LUT_shifting_options():
 
 
 def run_correction_region_options():
-    f = open("QY Uncertainty Data/bisMSB_4x47/correction_region_start.txt", 'w+')
-    f.write("Beginning of Correction Region, 350 nm Ratio, 360 nm Ratio, 370 nm Ratio, 380 nm Ratio,"+
-            "350 nm, 360 nm, 370 nm, 380 nm\n")
+    f = open("QY Uncertainty Data/bisMSB_4x47/correction_region_start.txt",'w+')
+    f.write("Beginning of Correction Region,350 nm Ratio,360 nm Ratio,370 nm Ratio,380 nm Ratio," +
+            "350 nm,360 nm,370 nm,380 nm\n")
     for option in correction_region_initial_wavelengths:
         f.write(str(option))
         qys, ratios = QY_analysis(correction_region_start=option)
-        for item in ratios + qys:
+        for item in np.append(ratios, qys):
             f.write(',' + str(item))
         f.write('\n')
     f.close()

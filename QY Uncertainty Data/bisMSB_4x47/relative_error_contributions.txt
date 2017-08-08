@@ -1,0 +1,8 @@
+Parameter, 350 nm, 360 nm, 370  nm, 380 nm
+Baseline errorr,2.119637,0.027524,2.397566,1.023602,
+Constant Diode Correction,0.500257,0.036624,0.374480,0.069846,
+LUT Interpolation Method,0.021879,0.083039,0.004395,0.007698,
+LUT Even-odd Splitting,0.029881,0.947752,0.600657,0.029490,
+LUT Offset Shifting,1.528783,0.664172,0.601325,0.693910,
+Start of Correction Region,1.047868,1.058519,2.800898,6.126835,
+All Variations,6.946484,4.718057,13.254067,11.169359,
