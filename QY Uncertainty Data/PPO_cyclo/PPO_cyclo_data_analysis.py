@@ -106,23 +106,27 @@ table_file.close()
 
 # Plot the change in the QY as we iterate through the option
 data = pd.read_csv("all_options.txt")
-fig = plt.figure(figsize=(15,10))
-fig.suptitle("Quantum Yield for 0.31 g/L PPO in EtOH", fontsize=20)
+parameter_columns = list(data)[:]
 
-for k in range(3):
-    ax = fig.add_subplot(2,3,k+1)
-    ax2 = fig.add_subplot(2, 3, k+4)
-    ax.plot(data[concentrations[k]], '+')
+fig = plt.figure(figsize=(15, 10))
+for param in parameter_columns:
+    fig.suptitle("Quantum Yield forPPO in Cx: %s" %param, fontsize=20)
+    data.sort_values(by=param, inplace=True)
+    data['int_index'] = range(len(data))
 
-    ax.set_title(concentrations[k])
-    ax2.set_title("Difference")
+    for k in range(3):
+        ax = fig.add_subplot(1,4,k+1)
+        # ax2 = fig.add_subplot(2, 4, k+5)
+        ax.plot(data['int_index'], data[concentrations[k]], 'g+')
 
+        ax.set_title(concentrations[k])
+        # ax2.set_title("Difference")
+        # ax2.plot(data['int_index'][1:], np.diff(data[concentrations[k]]), 'r+')
 
-    ax2.plot(np.diff(data[concentrations[k]]), 'r+')
-plt.xlabel("Variation Number")
-plt.subplots_adjust(top=.9)
-plt.savefig("Distributions/variations.png", format='png', dpi=300)
-plt.close('all')
+    plt.xlabel("Variation Number")
+    plt.subplots_adjust(top=.8, hspace=1.01)
+    plt.savefig("Variations/%s.png"%param, format='png', dpi=300)
+    plt.clf()
 
 
 

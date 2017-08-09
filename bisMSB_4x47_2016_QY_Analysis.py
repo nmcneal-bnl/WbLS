@@ -98,14 +98,12 @@ def QY_analysis(correction_region_start = DEFAULT_CORRECTION_REGION_START,
 
 QYs = list()
 
-correction_region_initial_wavelengths = range(390, 450+2, 2)
-correction_region_initial_wavelengths_long_step = range(390, 450+10, 10)
-
 LUT_interpolation_options = [(a,b) for a in ['linear', 'slinear', 'quadratic', 'cubic'] for b in ['linear', 'slinear', 'quadratic', 'cubic']]
 LUT_splitting_options = [(a,b) for a in ['none', 'even', 'odd'] for b in ['none', 'even', 'odd']]
 const_diode_options = [False, True]
 baseline_se_options = [(a,b) for a in ['none','plus','minus'] for b in ['none','plus','minus']]
 LUT_shifting_options = [False, True]
+correction_region_initial_wavelengths = range(400, 405 + 2, 2)
 
 
 def run_baseline_options():
@@ -193,7 +191,7 @@ def run_all_options():
     f = open("QY Uncertainty Data/bisMSB_4x47/all_options.txt", 'w+')
     f.write("InterceptSE,Slope SE,Constant Diode,Ex LUT Interpolation,Em LUT Interpolation," +
             "Ex LUT Split,Em LUT Split,Shift LUT?,Start of Correction Region,350 nm,360 nm,370 nm,380 nm\n")
-    for start in correction_region_initial_wavelengths_long_step:
+    for start in correction_region_initial_wavelengths:
         for shift_LUT in LUT_shifting_options:
             for use_baseline_se in baseline_se_options:
                 for ex_LUT_interpolation, em_LUT_interpolation in LUT_interpolation_options:

@@ -105,8 +105,7 @@ LUT_splitting_options = [(a,b) for a in ['none', 'even', 'odd'] for b in ['none'
 const_diode_options = [False, True]
 baseline_se_options = [(a,b) for a in ['none','plus','minus'] for b in ['none','plus','minus']]
 LUT_shifting_options = [False, True]
-correction_region_initial_wavelengths = range(350, 390+2, 2)
-correction_region_initial_wavelengths_long_step = range(350, 390+10, 10)
+correction_region_initial_wavelengths = range(360, 365+2, 2)
 
 
 def run_baseline_options():

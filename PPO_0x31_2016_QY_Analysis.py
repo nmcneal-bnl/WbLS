@@ -106,9 +106,7 @@ LUT_splitting_options = [(a,b) for a in ['none', 'even', 'odd'] for b in ['none'
 const_diode_options = [False, True]
 baseline_se_options = [(a,b) for a in ['none','plus','minus'] for b in ['none','plus','minus']]
 LUT_shifting_options = [False, True]
-correction_region_initial_wavelengths = range(350, 390+2, 2)
-correction_region_initial_wavelengths_long_step = range(350, 390+10, 10)
-
+correction_region_initial_wavelengths = range(360, 365+2, 2)
 
 def run_baseline_options():
     f = open("QY Uncertainty Data/PPO_0x31/baseline_options.txt",'w+')
@@ -190,7 +188,7 @@ def run_all_options():
     f = open("QY Uncertainty Data/PPO_0x31/all_options.txt",'w+')
     f.write("Shift LUT?,Intercept SE,Slope SE,Ex LUT Interpolation,Em LUT Interpolation," +
             "Ex LUT Split,Em LUT Split,Constant Diode,Start of Correction Region,310 nm,320 nm,330 nm,340 nm\n")
-    for start in correction_region_initial_wavelengths_long_step:
+    for start in correction_region_initial_wavelengths:
         for shift_LUT in LUT_shifting_options:
             for use_baseline_se in baseline_se_options:
                 for ex_LUT_interpolation, em_LUT_interpolation in LUT_interpolation_options:

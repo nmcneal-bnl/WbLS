@@ -34,6 +34,8 @@ DEFAULT_EX_MONOCHROMATOR_SHIFT = 2.5
 DEFAULT_EM_MONOCHROMATOR_SHIFT = 2.0
 DEFAULT_CORRECTION_REGION_START = 400
 
+baseline_diffs = list()
+qys = list()
 
 def QY_analysis(correction_region_start = DEFAULT_CORRECTION_REGION_START,
                 ex_LUT_split = 'none', em_LUT_split = 'none',
@@ -66,8 +68,9 @@ def QY_analysis(correction_region_start = DEFAULT_CORRECTION_REGION_START,
     correction_ratios = list()
     for blank, fluor in zip(3*corrected_cyclo, corrected_PPO_cyclo):
         # Define the emission region used for the quantum yield calculation
+        print fluor.file_path
         ex_wavelength = blank.ex_range[0]
-        ex_delta = 10
+        ex_delta = 5
         ex_int_range = [ex_wavelength - ex_delta, ex_wavelength + ex_delta]
 
         em_int_range = [325, 600]
@@ -80,6 +83,30 @@ def QY_analysis(correction_region_start = DEFAULT_CORRECTION_REGION_START,
 
         QYs.append(num_emitted / num_absorbed)
         correction_ratios.append(correction_area / num_emitted)
+
+        # plt.plot(blank.wavelengths, blank.baseline-fluor.baseline, 'k')
+        baseline_diffs.append(np.mean(blank.baseline-fluor.baseline))
+        qys.append(num_emitted / num_absorbed)
+
+        plt.figure(figsize=(15,10))
+        plt.plot(blank.wavelengths, blank.baseline, 'k')
+        plt.plot(fluor.wavelengths, fluor.baseline, 'r')
+        plt.title('(intercept error, slope error) = ' + str(use_baseline_se) + '\nEmitted: ' + str(num_emitted) + '   ' + 'Absorbed: '+ str(num_absorbed)+ '\nQY = ' + str(num_emitted/num_absorbed))
+        plt.grid()
+        plt.savefig('/home/nmcneal/Documents/WbLS/QY Uncertainty Data/PPO_cyclo/' + str(use_baseline_se) + 'BASELINES.png')
+        plt.close('all')
+
+        plt.figure(figsize=(15, 10))
+        plt.plot(blank.wavelengths, blank.cor_data, 'k')
+        plt.plot(fluor.wavelengths, fluor.cor_data, 'r')
+        plt.title('(intercept error, slope error) = '+ str(use_baseline_se) + '\nEmitted: ' + str(num_emitted) + '   ' + 'Absorbed: ' + str(num_absorbed) + '\nQY = ' + str(num_emitted / num_absorbed))
+        ex_limits_bool = (blank.wavelengths >= ex_int_range[0]) & (blank.wavelengths <= ex_int_range[1])
+        em_limits_bool = (blank.wavelengths >= em_int_range[0]) & (blank.wavelengths <= em_int_range[1])
+        plt.fill_between(blank.wavelengths, blank.cor_data, fluor.cor_data, ex_limits_bool, alpha=0.4)
+        plt.fill_between(blank.wavelengths, blank.cor_data, fluor.cor_data, em_limits_bool, alpha=0.4)
+        plt.grid()
+        plt.savefig('/home/nmcneal/Documents/WbLS/QY Uncertainty Data/PPO_cyclo/' + str(use_baseline_se) + 'SPECTRA.png')
+        plt.close('all')
 
     correction_ratios = np.array(correction_ratios)
     first_ratio = correction_ratios[0]
@@ -98,9 +125,7 @@ LUT_splitting_options = [(a,b) for a in ['none', 'even', 'odd'] for b in ['none'
 const_diode_options = [False, True]
 baseline_se_options = [(a,b) for a in ['none','plus','minus'] for b in ['none','plus','minus']]
 LUT_shifting_options = [False, True]
-correction_region_initial_wavelengths = range(370, 440+2, 2)
-correction_region_initial_wavelengths_long_step = range(370, 440+10, 10)
-
+correction_region_initial_wavelengths = range(360, 365+2, 2)
 
 def run_baseline_options():
     f = open("QY Uncertainty Data/PPO_cyclo/baseline_options.txt",'w+')
@@ -182,7 +207,7 @@ def run_all_options():
     f = open("QY Uncertainty Data/PPO_cyclo/all_options.txt",'w+')
     f.write("Shift LUT?,Intercept SE,Slope SE,Ex LUT Interpolation,Em LUT Interpolation," +
             "Ex LUT Split,Em LUT Split,Constant Diode,Start of Correction Region,0.04 mM,0.43 mM,4.3 mM\n")
-    for start in correction_region_initial_wavelengths_long_step:
+    for start in correction_region_initial_wavelengths:
         for shift_LUT in LUT_shifting_options:
             for use_baseline_se in baseline_se_options:
                 for ex_LUT_interpolation, em_LUT_interpolation in LUT_interpolation_options:
@@ -206,12 +231,22 @@ def run_all_options():
                             f.write('\n')
     f.close()
 
-print QY_analysis()[0]
+# print QY_analysis()[0]
 
 run_baseline_options()
-run_const_diode_options()
-run_LUT_interpolation_options()
-run_LUT_splitting_options()
-run_LUT_shifting_options()
-run_correction_region_options()
-run_all_options()
+# run_const_diode_options()
+# run_LUT_interpolation_options()
+# run_LUT_splitting_options()
+# run_LUT_shifting_options()
+# run_correction_region_options()
+# run_all_options()
+
+plt.figure(figsize=(16,10))
+plt.scatter(baseline_diffs[::3], qys[::3], c='r', label='0.04 mM')
+plt.scatter(baseline_diffs[1::3], qys[1::3], c='g', label='0.43 mM')
+plt.scatter(baseline_diffs[2::3], qys[2::3], c='b', label='4.3 mM')
+plt.title("Effect of Difference between Blank Baseline and Fluor Baseline\n(27 points - 9 error variations for each concentration", fontsize=20)
+plt.xlabel("Average Difference between Blank Baseline and Fluor Baselines")
+plt.ylabel("Calculated Quantum Yield")
+plt.legend()
+plt.show()

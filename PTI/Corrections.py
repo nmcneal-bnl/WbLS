@@ -305,6 +305,7 @@ def correct_raw_to_cor(PTIData = None, use_decorrected_as_raw = False,
                                                list_of_ranges = baseline_fit_ranges,
                                                use_incpt_se = use_baseline_se[0],
                                                use_slope_se=use_baseline_se[1])
+
     data.baseline = baseline
     data.baseline_incpt = params[0]
     data.baseline_slope = params[1]
