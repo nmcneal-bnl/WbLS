@@ -7,7 +7,7 @@ files = ['baseline_options.txt', 'const_diode.txt', 'LUT_interpolation.txt', 'LU
          'correction_region_start.txt', 'all_options.txt']
 
 # The number of bins to use for the histograms for the distributions caused by each parameter
-nums_bins = [4, 2, 4, 3, 2, 5, 40]
+nums_bins = [4, 2, 8, 3, 2, 5, 40]
 
 # The names of each of the parameters
 parameters=["Baseline error", "Constant Diode Correction", "LUT Interpolation Method",

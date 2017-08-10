@@ -34,8 +34,8 @@ bisMSB_4x47 = convert_paths_to_PTIData_objs(bisMSB_4x47_paths)
 # </editor-fold>
 
 
-DEFAULT_EX_MONOCHROMATOR_SHIFT = 2.5
-DEFAULT_EM_MONOCHROMATOR_SHIFT = 2.0
+DEFAULT_EX_MONOCHROMATOR_SHIFT = 0.83
+DEFAULT_EM_MONOCHROMATOR_SHIFT = 0.64
 DEFAULT_CORRECTION_REGION_START = 400
 
 
@@ -74,8 +74,8 @@ def QY_analysis(correction_region_start = DEFAULT_CORRECTION_REGION_START,
         ex_delta = 5
         ex_int_range = [ex_wavelength - ex_delta, ex_wavelength + ex_delta]
 
-        em_int_range = [365, 650]
-        correction_int_range = [correction_region_start, 650]
+        em_int_range = [365, 525]
+        correction_int_range = [correction_region_start, 525]
 
         # QY
         num_absorbed = PTIQY.integrate_between(blank, fluor, ex_int_range)
@@ -103,7 +103,7 @@ LUT_splitting_options = [(a,b) for a in ['none', 'even', 'odd'] for b in ['none'
 const_diode_options = [False, True]
 baseline_se_options = [(a,b) for a in ['none','plus','minus'] for b in ['none','plus','minus']]
 LUT_shifting_options = [False, True]
-correction_region_initial_wavelengths = range(400, 405 + 2, 2)
+correction_region_initial_wavelengths = range(400, 410 + 2, 2)
 
 
 def run_baseline_options():
@@ -223,6 +223,5 @@ run_baseline_options()
 run_const_diode_options()
 run_LUT_interpolation_options()
 run_LUT_splitting_options()
-run_LUT_shifting_options()
 run_correction_region_options()
 run_all_options()

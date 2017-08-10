@@ -95,7 +95,7 @@ for i in range(len(files)):
 # Make the table of relative uncertainties
 data = [pd.read_csv("Summaries/" + concentration + "_parameter_summary_statistics.txt") for concentration in concentrations]
 table_file = open("relative_error_contributions.txt", 'w+')
-table_file.write("Parameter, 350 nm, 360 nm, 370  nm, 380 nm\n")
+table_file.write("Parameter, 0.04 mM, 0.43 Mm,  nm\n")
 for i in range(7):
     table_file.write("%s," % data[0]['Parameter'][i])
     for j in range(0,3):

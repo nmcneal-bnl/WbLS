@@ -35,11 +35,12 @@ ETOH = convert_paths_to_PTIData_objs(EtOH_paths)
 PPO_0x31 = convert_paths_to_PTIData_objs(PPO_0x31_paths)
 # </editor-fold>
 
-DEFAULT_EX_MONOCHROMATOR_SHIFT = 2.5
-DEFAULT_EM_MONOCHROMATOR_SHIFT = 2.0
-DEFAULT_CORRECTION_REGION_START = 360
+DEFAULT_EX_MONOCHROMATOR_SHIFT = 0.83
+DEFAULT_EM_MONOCHROMATOR_SHIFT = 0.64
+DEFAULT_CORRECTION_REGION_START = 365
 
-
+ex_shifts = list()
+em_shifts = list()
 def QY_analysis(correction_region_start = DEFAULT_CORRECTION_REGION_START,
                 ex_LUT_split = 'none', em_LUT_split = 'none',
                 shift_LUT=False,
@@ -74,11 +75,11 @@ def QY_analysis(correction_region_start = DEFAULT_CORRECTION_REGION_START,
     for blank, fluor in zip(corrected_ETOH, corrected_PPO_0x31):
         # Define the emission region used for the quantum yield calculation
         ex_wavelength = blank.ex_range[0]
-        ex_delta = 10
+        ex_delta = 5
         ex_int_range = [ex_wavelength - ex_delta, ex_wavelength + ex_delta]
 
-        em_int_range = [320, 650]
-        correction_int_range = [correction_region_start, 650]
+        em_int_range = [330, 450]
+        correction_int_range = [correction_region_start, 450]
 
         # QY
         num_absorbed = PTIQY.integrate_between(blank, fluor, ex_int_range)
@@ -87,6 +88,10 @@ def QY_analysis(correction_region_start = DEFAULT_CORRECTION_REGION_START,
 
         QYs.append(num_emitted / num_absorbed)
         correction_ratios.append(correction_area / num_emitted)
+        ex_shifts.append(blank.ex_monochromator_offset)
+        ex_shifts.append(fluor.ex_monochromator_offset)
+        em_shifts.append(blank.em_monochromator_offset)
+        em_shifts.append(fluor.em_monochromator_offset)
 
     correction_ratios = np.array(correction_ratios)
     first_ratio = correction_ratios[0]
@@ -95,6 +100,7 @@ def QY_analysis(correction_region_start = DEFAULT_CORRECTION_REGION_START,
 
     corrected_QYs = [QYs[i] * correction_ratios[i] / np.mean(similar_ratios)
                      for i in range(len(QYs))]
+
 
     return corrected_QYs, correction_ratios
 
@@ -106,7 +112,7 @@ LUT_splitting_options = [(a,b) for a in ['none', 'even', 'odd'] for b in ['none'
 const_diode_options = [False, True]
 baseline_se_options = [(a,b) for a in ['none','plus','minus'] for b in ['none','plus','minus']]
 LUT_shifting_options = [False, True]
-correction_region_initial_wavelengths = range(360, 365+2, 2)
+correction_region_initial_wavelengths = range(360, 370+2, 2)
 
 def run_baseline_options():
     f = open("QY Uncertainty Data/PPO_0x31/baseline_options.txt",'w+')
@@ -221,3 +227,4 @@ run_LUT_splitting_options()
 run_LUT_shifting_options()
 run_correction_region_options()
 run_all_options()
+print np.mean(ex_shifts), np.mean(em_shifts)

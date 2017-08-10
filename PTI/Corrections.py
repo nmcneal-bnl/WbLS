@@ -245,7 +245,7 @@ def get_corrections(PTIData_instance,
     # Perform the diode correction made from the ExCorr RCQC signal
     if diode:
         if const_diode:
-            corrections  /= numpy.mean(PTIData_instance.diode)
+            corrections /= numpy.mean(PTIData_instance.diode)
         else:
             corrections /= PTIData_instance.diode
     
